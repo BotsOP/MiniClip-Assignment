@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Components.Player.Upgrades;
 using Managers;
 using PrimeTween;
 using UnityEngine;
@@ -7,27 +8,24 @@ using EventType = Managers.EventType;
 
 namespace Components.Player
 {
-    public class PlayerManager : MonoBehaviour
+    public class HitManager : MonoBehaviour
     {
         [SerializeField] private HammerSettings hammerSettings;
         
         [Inject] private IInputManager inputManager;
+        [Inject] private IUpgradeManager upgradeManager;
 
         private Transform hammerPivot;
         private HammerData hammerData;
         private Camera mainCamera;
-        private float hammerPower;
         private Vector2 cachedScaledStartScreenPos;
-        private Vector3 cachedStartWorldPos;
-        private List<IHitResolver> upgrades;
+        private IHitResolver hit;
         
         private Quaternion BaseHammerRotation => cachedScaledStartScreenPos.x < 0.5 ? Quaternion.identity : Quaternion.Euler(0, 180, 0);
 
         private void OnEnable()
         {
             inputManager.StartHit += StartHit;
-            inputManager.PerformingHit += PerformingHit;
-            inputManager.CancelledHit += CancelledHit;
         
             mainCamera = Camera.main;
             hammerData = hammerSettings.GetHammerData();
@@ -35,37 +33,29 @@ namespace Components.Player
             
             //THE FIRST CHILD NEEDS TO THE PIVOT OF THE HAMMER
             hammerPivot = hammerSettings.hammerTransform.GetChild(0);
+            hammerData.pivot = hammerPivot;
+            hit = new BasicHitResolver();
         }
+        
         private void OnDisable()
         {
             inputManager.StartHit -= StartHit;
-            inputManager.PerformingHit -= PerformingHit;
-            inputManager.CancelledHit -= CancelledHit;
+        }
+
+        private void SetHit(IHitResolver newHit)
+        {
+            hit = newHit;
         }
 
         private void StartHit(Vector2 screenPos, Vector2 scaledScreenPos)
         {
             Vector3 worldPos = GetWorldPos(screenPos);
-            cachedStartWorldPos = worldPos;
             cachedScaledStartScreenPos = scaledScreenPos;
             hammerSettings.hammerTransform.localRotation = BaseHammerRotation;
             hammerSettings.hammerTransform.position = worldPos;
-        }
-        private void PerformingHit(Vector2 screenPos, Vector2 scaledScreenPos)
-        {
-            float distance = Vector2.Distance(cachedScaledStartScreenPos, scaledScreenPos);
-            hammerPower = distance * hammerSettings.hammerPowerDistanceScaling;
-            hammerPower = Mathf.Clamp(hammerPower, 0, hammerSettings.maxHammerPower);
 
-            hammerPivot.localRotation = Quaternion.Euler(0, 0, hammerPower * hammerSettings.hammerRotationScaling);
-        }
-
-        private void CancelledHit(Vector2 screenPos, Vector2 scaledScreenPos)
-        {
-            DamageInfo damageInfo = new DamageInfo(cachedStartWorldPos, hammerPower * hammerSettings.damageScaling);
-            EventSystem<DamageInfo>.RaiseEvent(EventType.DoDamage, damageInfo);
-            Sequence.Create(1, CycleMode.Restart, Ease.OutSine)
-                .Group(Tween.LocalRotation(hammerPivot, Quaternion.identity, 0.1f));
+            HammerData copy = hammerData;
+            hit.ResolveHit(ref copy);
         }
 
         private Vector3 GetWorldPos(Vector2 screenPos)
