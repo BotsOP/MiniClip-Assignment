@@ -6,8 +6,16 @@ namespace Components.Player.Upgrades
     [CreateAssetMenu(menuName = "Upgrades/ExplosionUpgrade")]
     public class ExplosionUpgradeFactory : ScriptableObject, IHitUpgradeFactory
     {
+        [Header("Visual Settings")] 
+        [SerializeField] private string nameUpgrade;
+        [SerializeField] private Texture2D textureUpgrade;
+        [SerializeField] private string nameExplosionDamageModifier;
+        [SerializeField] private string nameExplosionDistanceModifier;
+        
+        [Header("Upgrade Settings")]
         [SerializeField] private int upgradeOrder;
         [SerializeField] private float startExplosionDamageModifier = 0.25f;
+        [SerializeField] private float explosionDamageModifierPerLevel = 0.01f;
         [SerializeField] private float explosionReachIncreasePerLevel = 0.25f;
         private int level;
 
@@ -19,32 +27,73 @@ namespace Components.Player.Upgrades
         {
             level++;
         }
-        public IHitResolver Create(IHitResolver inner, GridContext gridContext)
+        public IHitResolver Create(IHitResolver inner)
         {
             return new ExplosionUpgrade(
                 inner,
-                gridContext,
                 level,
                 startExplosionDamageModifier,
+                explosionDamageModifierPerLevel,
                 explosionReachIncreasePerLevel
             );
         }
+
+        public UpgradeInfo GetUpgradeInfo()
+        {
+            return new UpgradeInfo(level, nameUpgrade, textureUpgrade, GetUpgradeStatInfo());
+        }
+
+        private UpgradeStatInfo[] GetUpgradeStatInfo()
+        {
+            UpgradeStatInfo[] upgradeInfos = new UpgradeStatInfo[2];
+            ExplosionUpgrade upgrade = new ExplosionUpgrade(
+                null,
+                level,
+                startExplosionDamageModifier,
+                explosionDamageModifierPerLevel,
+                explosionReachIncreasePerLevel
+            );
+            
+            UpgradeStatInfo explosionDamageStatInfo = new UpgradeStatInfo {
+                nameStatModified = nameExplosionDamageModifier,
+                valueBefore = upgrade.explosionDamageModifier,
+            };
+            UpgradeStatInfo explosionDistanceStatInfo = new UpgradeStatInfo {
+                nameStatModified = nameExplosionDamageModifier,
+                valueBefore = upgrade.explosionReachIncreasePerLevel,
+            };
+            upgrade.LevelUp();
+            explosionDamageStatInfo.valueAfter = upgrade.explosionDamageModifier;
+            explosionDistanceStatInfo.valueAfter = upgrade.explosionReachIncreasePerLevel;
+
+            upgradeInfos[0] = explosionDamageStatInfo;
+            upgradeInfos[1] = explosionDistanceStatInfo;
+            return upgradeInfos;
+        }
     }
     
-    public class ExplosionUpgrade : HitUpgrade
+    public sealed class ExplosionUpgrade : HitUpgrade
     {
-        private readonly float startExplosionDamageModifier;
-        private readonly float explosionReachIncreasePerLevel;
-        public ExplosionUpgrade(IHitResolver inner, GridContext gridContext, int level, float startExplosionDamageModifier, float explosionReachIncreasePerLevel) : base(inner, gridContext, level)
+        public float explosionDamageModifier { get; private set; }
+        public float explosionDamageModifierPerLevel { get; private set; }
+        public float explosionReachIncreasePerLevel { get; private set; }
+        public ExplosionUpgrade(IHitResolver inner, int level, float startExplosionDamageModifier, float explosionDamageModifierPerLevel, float explosionReachIncreasePerLevel) : base(inner, level)
         {
-            this.startExplosionDamageModifier = startExplosionDamageModifier;
+            explosionDamageModifier = startExplosionDamageModifier;
+            this.explosionDamageModifierPerLevel = explosionDamageModifierPerLevel;
             this.explosionReachIncreasePerLevel = explosionReachIncreasePerLevel;
+            ResolveLevelChanges();
+        }
+
+        public override void ResolveLevelChanges()
+        {
+            explosionDamageModifier += explosionDamageModifierPerLevel * Level;
+            explosionReachIncreasePerLevel = 1 + explosionReachIncreasePerLevel * Level;
         }
         public override void ResolveHit(ref HammerData hammerData)
         {
-            float explosionDamage = hammerData.damage * startExplosionDamageModifier;
-            float explosionDistance = 1 + explosionReachIncreasePerLevel * level;
-            int explosionDistanceInt = Mathf.FloorToInt(explosionDistance);
+            float explosionDamage = hammerData.damage * explosionDamageModifier;
+            int explosionDistanceInt = Mathf.FloorToInt(explosionReachIncreasePerLevel);
             for (int x = -explosionDistanceInt; x < explosionDistanceInt; x++)
             for (int y = -explosionDistanceInt; y < explosionDistanceInt; y++)
             {
@@ -54,12 +103,11 @@ namespace Components.Player.Upgrades
                 Vector2Int index = new Vector2Int(x, y);
                 
                 float distance = Vector2Int.Distance(index, Vector2Int.zero);
-                if (distance > explosionDistance)
+                if (distance > explosionReachIncreasePerLevel)
                     continue;
 
-                float distanceScaled = 1 - (distance / explosionDistance);
-                Vector3 explosionPos = hammerData.worldPos + new Vector3(x * gridContext.cellSize, 0, y * gridContext.cellSize);
-                DamageInfo damageInfo = new DamageInfo(explosionPos, explosionDamage * distanceScaled);
+                float distanceScaled = 1 - (distance / explosionReachIncreasePerLevel);
+                DamageInfo damageInfo = new DamageInfo(hammerData.worldPos, new Vector2Int(x, y), explosionDamage * distanceScaled, DamageSource.Player);
                 ExtraHit(hammerData, damageInfo);
             }
             inner.ResolveHit(ref hammerData);

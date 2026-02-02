@@ -6,6 +6,7 @@ namespace Components.Player.Upgrades
     {
         int GetUpgradeOrder();
         void IncreaseLevel();
-        IHitResolver Create(IHitResolver inner, GridContext gridContext);
+        IHitResolver Create(IHitResolver inner);
+        public UpgradeInfo GetUpgradeInfo();
     }
 }

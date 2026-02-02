@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9e7381f497c4a9095ab2d3525f6f89f, type: 3}
   m_Name: HammerSettings
   m_EditorClassIdentifier: 
-  hammerTransform: {fileID: 889988839063199270, guid: 0d18604a88642f64391aa5df6a95c8f9, type: 3}
+  hammerPrefab: {fileID: 889988839063199270, guid: 0d18604a88642f64391aa5df6a95c8f9, type: 3}
+  extraHammerPrefab: {fileID: 7266265397597640645, guid: 0295db0dec677fa4aac9b6189a9aac69, type: 3}
   damage: 35
   groundLayerMask:
     serializedVersion: 2

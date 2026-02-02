@@ -13,17 +13,9 @@ namespace Components.Player.Upgrades
         [SerializeField] private List<ScriptableObject> upgradeData;
         
         private readonly List<IHitUpgradeFactory> upgradeFactories = new List<IHitUpgradeFactory>();
-        private readonly List<IHitUpgradeFactory> activeUpgradeFactories = new List<IHitUpgradeFactory>();
-        private GridContext gridContext;
-
-        [Inject]
-        private void InjectGridContext(IGridManager gridManager)
-        {
-            gridContext = gridManager.GetGridContext();
-        }
+        private List<IHitUpgradeFactory> activeUpgradeFactories;
         
-        [Provide]
-        private IUpgradeManager ProvideUpgradeManager()
+        [Provide] private IUpgradeManager ProvideUpgradeManager()
         {
             return this;
         }
@@ -35,8 +27,9 @@ namespace Components.Player.Upgrades
 
             for (int i = upgradeData.Count - 1; i >= 0; i--)
             {
-                if (!EnsureScriptableObjectIsUpgrade(i))
+                if (!EnsureScriptableObjectIsUpgrade(upgradeData[i]))
                 {
+                    upgradeData.RemoveAt(i);
                     i--;
                 }
             }
@@ -44,37 +37,37 @@ namespace Components.Player.Upgrades
 
         private void Awake()
         {
+            activeUpgradeFactories = new List<IHitUpgradeFactory>(upgradeFactories.Count);
             for (int i = 0; i < upgradeData.Count; i++)
             {
-                if (!EnsureScriptableObjectIsUpgrade(i))
+                if (!EnsureScriptableObjectIsUpgrade(upgradeData[i]))
                 {
+                    upgradeData.RemoveAt(i);
                     i--;
                     continue;
                 }
-                upgradeFactories[i] = (IHitUpgradeFactory)upgradeData[i];
+                upgradeFactories.Add((IHitUpgradeFactory)upgradeData[i]);
             }
         }
-        private bool EnsureScriptableObjectIsUpgrade(int i)
+        private bool EnsureScriptableObjectIsUpgrade(ScriptableObject so)
         {
-            ScriptableObject so = upgradeData[i];
-                
             if (so == null)
                 return false;
                 
             if (so is not IHitUpgradeFactory)
             {
-                // Debug.LogError($"{so.name} does not implement {nameof(IHitUpgradeFactory)} and was removed", this);
-                upgradeData.RemoveAt(i);
+                Debug.LogError($"{so.name} does not implement {nameof(IHitUpgradeFactory)} and was removed", this);
                 return false;
             }
+            
             return true;
         }
 
-        public IHitUpgradeFactory[] TryGet3RandomUpgrades()
+        public IHitUpgradeFactory[] TryGetRandomUpgrades(int amountRandomUpgrades)
         {
-            int amountUpgrades = Mathf.Min(upgradeFactories.Count, 3);
+            int amountUpgrades = Mathf.Min(upgradeFactories.Count, amountRandomUpgrades);
             IHitUpgradeFactory[] possibleUpgradeFactories = new IHitUpgradeFactory[amountUpgrades];
-            if (upgradeFactories.Count <= 3)
+            if (upgradeFactories.Count <= amountRandomUpgrades)
             {
                 for (int i = 0; i < upgradeFactories.Count; i++)
                 {
@@ -83,8 +76,8 @@ namespace Components.Player.Upgrades
                 return possibleUpgradeFactories;
             }
             
-            int[] distinctIndices = Helper.RandomDistinct(0, upgradeFactories.Count, 3);
-            for (int i = 0; i < 3; i++)
+            int[] distinctIndices = Helper.RandomDistinct(0, upgradeFactories.Count, amountRandomUpgrades);
+            for (int i = 0; i < amountRandomUpgrades; i++)
             {
                 int randomIndex = distinctIndices[i];
                 possibleUpgradeFactories[i] = upgradeFactories[randomIndex];
@@ -113,7 +106,7 @@ namespace Components.Player.Upgrades
             activeUpgradeFactories.Sort((a, b) => a.GetUpgradeOrder().CompareTo(b.GetUpgradeOrder()));
             foreach (IHitUpgradeFactory activeUpgradeFactory in activeUpgradeFactories)
             {
-                hit = activeUpgradeFactory.Create(hit, gridContext);
+                hit = activeUpgradeFactory.Create(hit);
             }
             UpdateHit?.Invoke(hit);
         }

@@ -6,13 +6,19 @@ using Random = UnityEngine.Random;
 
 namespace Components.ObjectPool
 {
+    public interface IObjectPoolManager
+    {
+        bool CreatePool(PoolObject objectToPool, int maxSize = 50, int defaultCapacity = 10, bool collectionCheck = true);
+        bool Spawn(PoolObject poolObject, out PoolObject poolObjectInstance);
+        bool Release(PoolObject poolObjectInstance);
+    }
 
-    public class ObjectPoolManager : MonoBehaviour, IDependencyProvider
+    public class ObjectPoolManager : MonoBehaviour, IDependencyProvider, IObjectPoolManager
     {
         private Dictionary<Type, ObjectPool<PoolObject>> pools = new Dictionary<Type, ObjectPool<PoolObject>>();
 
         [Provide]
-        private ObjectPoolManager ProvideObjectPoolManager()
+        private IObjectPoolManager ProvideObjectPoolManager()
         {
             return this;
         }

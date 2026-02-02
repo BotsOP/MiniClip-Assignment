@@ -1,16 +1,22 @@
 using System;
 using Components.Grid;
 using Components.ObjectPool;
-using Managers;
 using PrimeTween;
 using UnityEngine;
-using EventType = Managers.EventType;
+using EventType = Components.Managers.EventType;
 
 namespace Components.Player.Upgrades
 {
     [CreateAssetMenu(menuName = "Upgrades/ExtraHammerPlusUpgrade")]
     public class ExtraHammerPlusUpgradeFactory : ScriptableObject, IHitUpgradeFactory
     {
+        [Header("Visual Settings")] 
+        [SerializeField] private string nameUpgrade;
+        [SerializeField] private Texture2D textureUpgrade;
+        [SerializeField] private string nameExtraHammerDamageModifier;
+        [SerializeField] private string nameAmountExtraHammerModifier;
+        
+        [Header("Upgrade Settings")]
         [SerializeField] private int upgradeOrder;
         [SerializeField] private float extraHammerDamageBase = 0.25f;
         [SerializeField] private float extraHammerDamagePerLevel = 0.25f;
@@ -25,35 +31,70 @@ namespace Components.Player.Upgrades
             level++;
         }
         
-        public IHitResolver Create(IHitResolver inner, GridContext gridContext)
+        public IHitResolver Create(IHitResolver inner)
         {
             return new ExtraHammerPlusUpgrade(
                 inner,
-                gridContext,
                 level,
                 extraHammerDamagePerLevel,
                 extraHammerDamageBase
             );
+        }
+        
+        public UpgradeInfo GetUpgradeInfo()
+        {
+            return new UpgradeInfo(level, nameUpgrade, textureUpgrade, GetUpgradeStatInfo());
+        }
+
+        private UpgradeStatInfo[] GetUpgradeStatInfo()
+        {
+            UpgradeStatInfo[] upgradeInfos = new UpgradeStatInfo[2];
+            ExtraHammerPlusUpgrade upgrade = new ExtraHammerPlusUpgrade(
+                null,
+                level,
+                extraHammerDamagePerLevel,
+                extraHammerDamageBase
+            );
+            
+            UpgradeStatInfo explosionDamageStatInfo = new UpgradeStatInfo {
+                nameStatModified = nameAmountExtraHammerModifier,
+                valueBefore = level,
+            };
+            UpgradeStatInfo explosionDistanceStatInfo = new UpgradeStatInfo {
+                nameStatModified = nameExtraHammerDamageModifier,
+                valueBefore = upgrade.ExtraHammerDamage,
+            };
+            upgrade.LevelUp();
+            explosionDamageStatInfo.valueAfter = level + 1;
+            explosionDistanceStatInfo.valueAfter = upgrade.ExtraHammerDamage;
+
+            upgradeInfos[0] = explosionDamageStatInfo;
+            upgradeInfos[1] = explosionDistanceStatInfo;
+            return upgradeInfos;
         }
     }
     
     public class ExtraHammerPlusUpgrade : HitUpgrade
     {
         private readonly float extraHammerDamagePerLevel;
-        private readonly float extraHammerDamageBase;
-        public ExtraHammerPlusUpgrade(IHitResolver inner, GridContext gridContext, int level, float extraHammerDamagePerLevel, float extraHammerDamageBase) : base(inner, gridContext, level)
+        public float ExtraHammerDamage { get; private set; }
+        public ExtraHammerPlusUpgrade(IHitResolver inner, int level, float extraHammerDamagePerLevel, float extraHammerDamageBase) : base(inner, level)
         {
             this.extraHammerDamagePerLevel = extraHammerDamagePerLevel;
-            this.extraHammerDamageBase = extraHammerDamageBase;
+            ExtraHammerDamage = extraHammerDamageBase;
+            ResolveLevelChanges();
+        }
+        public override void ResolveLevelChanges()
+        {
+            ExtraHammerDamage += extraHammerDamagePerLevel * Level;
         }
         public override void ResolveHit(ref HammerData hammerData)
         {
-            float damage = hammerData.damage * (extraHammerDamageBase + extraHammerDamagePerLevel * level);
-            for (int i = 0; i < level; i++)
+            float damage = hammerData.damage * ExtraHammerDamage;
+            for (int i = 0; i < Level; i++)
             {
                 int extension = i / 4;
                 int direction = i % 4;
-                DamageInfo damageInfo = new DamageInfo(hammerData.worldPos, damage);
                 Vector2Int offset = Vector2Int.zero;
                 switch (direction)
                 {
@@ -73,8 +114,7 @@ namespace Components.Player.Upgrades
                         Debug.LogError($"Direction not found");
                         break;
                 }
-                damageInfo.worldPos += new Vector3(offset.x * gridContext.cellSize, 0, offset.y * gridContext.cellSize);
-                
+                DamageInfo damageInfo = new DamageInfo(hammerData.worldPos, offset, damage, DamageSource.Player);
                 ExtraHit(hammerData, damageInfo);
             }
             inner.ResolveHit(ref hammerData);

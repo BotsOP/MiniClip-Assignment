@@ -1,23 +1,21 @@
 using Components.Grid;
+using Components.Managers;
 using Components.ObjectPool;
-using Managers;
 using PrimeTween;
 using UnityEngine;
-using EventType = Managers.EventType;
+using EventType = Components.Managers.EventType;
 
 namespace Components.Player.Upgrades
 {
     public abstract class HitUpgrade : IHitResolver
     {
-        protected readonly int level;
-        protected readonly GridContext gridContext;
+        protected int Level { get; private set; }
         protected readonly IHitResolver inner;
 
-        protected HitUpgrade(IHitResolver inner, GridContext gridContext, int level)
+        protected HitUpgrade(IHitResolver inner, int level)
         {
             this.inner = inner;
-            this.gridContext = gridContext;
-            this.level = level;
+            Level = level;
         }
 
         protected virtual void ExtraHit(HammerData hammerData, DamageInfo damageInfo)
@@ -35,6 +33,13 @@ namespace Components.Player.Upgrades
                 .Group(Tween.LocalRotation(instance.transform, Quaternion.identity, 0.1f))
                 .ChainCallback(() => release(instance));
             EventSystem<DamageInfo>.RaiseEvent(EventType.DoDamage, damageInfo);
+        }
+        
+        public virtual void ResolveLevelChanges(){}
+        public void LevelUp()
+        {
+            Level++;
+            ResolveLevelChanges();
         }
         
         public virtual void ResolveHit(ref HammerData hammerData) {}

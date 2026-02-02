@@ -4,9 +4,8 @@ using Components.Entities;
 using Components.Entities.Enemies;
 using Components.Managers;
 using Components.Player;
-using Managers;
 using UnityEngine;
-using EventType = Managers.EventType;
+using EventType = Components.Managers.EventType;
 using Random = UnityEngine.Random;
 
 namespace Components.Grid
@@ -40,12 +39,10 @@ namespace Components.Grid
         private void OnEnable()
         {
             grid = new Entity[gridWidth, gridHeight];
-            EventSystem<int>.Subscribe(EventType.SpawnRandomEnemy, SpawnRandomEnemy);
             EventSystem<DamageInfo>.Subscribe(EventType.DoDamage, DoDamage);
         }
         private void OnDisable()
         {
-            EventSystem<int>.UnSubscribe(EventType.SpawnRandomEnemy, SpawnRandomEnemy);
             EventSystem<DamageInfo>.UnSubscribe(EventType.DoDamage, DoDamage);
         }
 
@@ -59,7 +56,7 @@ namespace Components.Grid
                 return;
             }
             
-            grid[index.x, index.y]?.DoDamage(damageInfo.damage);
+            grid[index.x, index.y]?.DoDamage(damageInfo);
         }
 
         public GridContext GetGridContext()
