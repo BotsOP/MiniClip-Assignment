@@ -14,7 +14,7 @@ namespace Components.Entities
             this.diedCallback += diedCallback;
         }
 
-        public void AddMethod(Action<Entity> diedCallback)
+        public void AddDiedCallback(Action<Entity> diedCallback)
         {
             this.diedCallback += diedCallback;
         }

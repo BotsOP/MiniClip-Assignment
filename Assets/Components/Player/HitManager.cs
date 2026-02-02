@@ -1,10 +1,6 @@
-using System.Collections.Generic;
+using Components.ObjectPool;
 using Components.Player.Upgrades;
-using Managers;
-using PrimeTween;
 using UnityEngine;
-using UnityEngine.UIElements;
-using EventType = Managers.EventType;
 
 namespace Components.Player
 {
@@ -14,7 +10,9 @@ namespace Components.Player
         
         [Inject] private IInputManager inputManager;
         [Inject] private IUpgradeManager upgradeManager;
+        [Inject] private ObjectPoolManager objectPool;
 
+        private Transform hammerTransform;
         private Transform hammerPivot;
         private HammerData hammerData;
         private Camera mainCamera;
@@ -26,20 +24,24 @@ namespace Components.Player
         private void OnEnable()
         {
             inputManager.StartHit += StartHit;
+            upgradeManager.UpdateHit += SetHit;
         
             mainCamera = Camera.main;
-            hammerData = hammerSettings.GetHammerData();
-            hammerSettings.hammerTransform = Instantiate(hammerSettings.hammerTransform);
+            hammerTransform = Instantiate(hammerSettings.hammerPrefab);
+            hammerPivot = hammerTransform.GetChild(0);
             
-            //THE FIRST CHILD NEEDS TO THE PIVOT OF THE HAMMER
-            hammerPivot = hammerSettings.hammerTransform.GetChild(0);
+            hammerData = hammerSettings.GetHammerData();
             hammerData.pivot = hammerPivot;
+            hammerData.spawn = objectPool.Spawn;
+            hammerData.release = objectPool.Release;
+            
             hit = new BasicHitResolver();
         }
         
         private void OnDisable()
         {
             inputManager.StartHit -= StartHit;
+            upgradeManager.UpdateHit -= SetHit;
         }
 
         private void SetHit(IHitResolver newHit)
@@ -51,10 +53,12 @@ namespace Components.Player
         {
             Vector3 worldPos = GetWorldPos(screenPos);
             cachedScaledStartScreenPos = scaledScreenPos;
-            hammerSettings.hammerTransform.localRotation = BaseHammerRotation;
-            hammerSettings.hammerTransform.position = worldPos;
+            hammerTransform.localRotation = BaseHammerRotation;
+            hammerTransform.position = worldPos;
+            hammerPivot.localRotation = Quaternion.Euler(0, 0, 90);
 
             HammerData copy = hammerData;
+            copy.worldPos = worldPos;
             hit.ResolveHit(ref copy);
         }
 

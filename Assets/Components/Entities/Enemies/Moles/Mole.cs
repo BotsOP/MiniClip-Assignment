@@ -7,12 +7,12 @@ namespace Components.Entities.Enemies.Moles
     public class Mole : Enemy
     {
         protected Animator animator;
-        protected IMoleViewer moleViewer;
+        protected MoleViewer moleViewer;
         protected StateMachine.StateMachine stateMachine;
 
-        public IMoleViewer MoleViewer => moleViewer;
+        public MoleViewer MoleViewer => moleViewer;
 
-        public Mole(Action<Entity> diedCallback, MoleData moleData, IMoleViewer moleViewer) : base(diedCallback)
+        public Mole(Action<Entity> diedCallback, MoleData moleData, MoleViewer moleViewer) : base(diedCallback)
         {
             this.moleViewer = moleViewer;
             health = moleData.maxHealth;

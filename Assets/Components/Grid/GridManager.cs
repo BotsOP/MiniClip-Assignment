@@ -11,16 +11,11 @@ using Random = UnityEngine.Random;
 
 namespace Components.Grid
 {
-    public interface IGridManager
-    {
-        void SpawnRandomEnemy(int difficulty);
-    }
-
     public class GridManager : MonoBehaviour, IGridManager, IDependencyProvider
     {
+        [SerializeField, Min(1)] private float cellSize = 1;
         [SerializeField, Min(1)] private int gridWidth = 1;
         [SerializeField, Min(1)] private int gridHeight = 1;
-        [SerializeField, Min(1)] private float cellSize = 1;
         
         [Inject] private IEnemySpawner enemySpawner;
 
@@ -57,7 +52,6 @@ namespace Components.Grid
         private void DoDamage(DamageInfo damageInfo)
         {
             Vector2Int index = WorldPosToIndex(damageInfo.worldPos);
-            index += damageInfo.gridOffset;
             
             if (index.x < 0 || index.y < 0 || index.x >= gridWidth || index.y >= gridHeight)
             {
@@ -68,6 +62,10 @@ namespace Components.Grid
             grid[index.x, index.y]?.DoDamage(damageInfo.damage);
         }
 
+        public GridContext GetGridContext()
+        {
+            return new GridContext(cellSize, gridWidth, gridHeight);
+        }
         public void SpawnRandomEnemy(int difficulty)
         {
             if (!GetRandomFreeIndex(out Vector2Int freeIndex))

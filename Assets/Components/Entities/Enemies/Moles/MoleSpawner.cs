@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Components.ObjectPool;
 using Managers;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -14,9 +15,11 @@ namespace Components.Entities.Enemies.Moles
     public class MoleSpawner : MonoBehaviour, IEnemySpawner, IDependencyProvider
     {
         [SerializeField] private MoleData[] moleDatas;
-        private List<Mole> moles = new List<Mole>();
+        
+        private readonly List<Mole> moles = new List<Mole>();
         private Dictionary<int, List<MoleData>> indexedMolesChances = new Dictionary<int, List<MoleData>>();
         private int maxDifficulty;
+        [Inject] private ObjectPoolManager objectPoolManager;
 
         [Provide]
         public IEnemySpawner ProvideEnemySpawner()
@@ -34,6 +37,8 @@ namespace Components.Entities.Enemies.Moles
                     indexedMolesChances.Add(moleData.difficulty, new List<MoleData> { moleData });
                 else
                     indexedMolesChances[moleData.difficulty].Add(moleData);
+
+                objectPoolManager.CreatePool(moleData.moleInstance);
             }
 
             foreach (List<MoleData> moleDataList in indexedMolesChances.Values)
@@ -65,7 +70,7 @@ namespace Components.Entities.Enemies.Moles
             if (mole == null)
                 return false;
             
-            mole.AddMethod(RemoveMole);
+            mole.AddDiedCallback(RemoveMole);
             moles.Add(mole);
             return true;
         }
@@ -101,8 +106,13 @@ namespace Components.Entities.Enemies.Moles
             switch (moleData.typeOfMole)
             {
                 case TypeOfMole.Mole :
-                    MoleViewer moleViewer = Instantiate(moleData.moleInstance, spawnPosition, Quaternion.identity);
-                    return new Mole(enemyDiedCallback, moleData, moleViewer);
+                    if (!objectPoolManager.Spawn(moleData.moleInstance, out PoolObject instance))
+                    {
+                        Debug.LogError("Failed spawning mole");
+                    }
+                    instance.transform.position = spawnPosition;
+                    
+                    return new Mole(enemyDiedCallback, moleData, (MoleViewer)instance);
                 default:
                     return null;
             }
@@ -111,7 +121,7 @@ namespace Components.Entities.Enemies.Moles
         private void RemoveMole(Entity entity)
         {
             Mole mole = (Mole)entity;
-            Destroy(mole.MoleViewer.GetGameObject());
+            objectPoolManager.Release(mole.MoleViewer.GetPoolObject());
             moles.Remove(mole);
         }
     }

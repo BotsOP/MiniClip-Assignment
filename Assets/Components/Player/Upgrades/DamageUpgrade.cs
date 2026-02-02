@@ -1,3 +1,4 @@
+using Components.Grid;
 using UnityEngine;
 
 namespace Components.Player.Upgrades
@@ -17,10 +18,11 @@ namespace Components.Player.Upgrades
         {
             level++;
         }
-        public IHitResolver Create(IHitResolver inner)
+        public IHitResolver Create(IHitResolver inner, GridContext gridContext)
         {
             return new DamageUpgrade(
                 inner,
+                gridContext,
                 level,
                 damageIncreasePerLevel
             );
@@ -30,13 +32,14 @@ namespace Components.Player.Upgrades
     public class DamageUpgrade : HitUpgrade
     {
         private readonly float damageIncreasePerLevel;
-        public DamageUpgrade(IHitResolver inner, int level, float damageIncreasePerLevel) : base(inner, level)
+        public DamageUpgrade(IHitResolver inner, GridContext gridContext, int level, float damageIncreasePerLevel) : base(inner, gridContext, level)
         {
             this.damageIncreasePerLevel = damageIncreasePerLevel;
         }
         public override void ResolveHit(ref HammerData hammerData)
         {
-            hammerData.damage += damageIncreasePerLevel * Level;
+            //We do Level + 1 because you start with level 0 and a value to the power of 0 is always 1, and we want an immediate effect in our damage
+            hammerData.damage *= Mathf.Pow(damageIncreasePerLevel, level + 1);
             inner.ResolveHit(ref hammerData);
         }
     }

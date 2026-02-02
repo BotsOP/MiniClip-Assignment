@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9e7381f497c4a9095ab2d3525f6f89f, type: 3}
+  m_Name: HammerSettings
+  m_EditorClassIdentifier: 
+  hammerTransform: {fileID: 889988839063199270, guid: 0d18604a88642f64391aa5df6a95c8f9, type: 3}
+  damage: 35
+  groundLayerMask:
+    serializedVersion: 2
+    m_Bits: 8

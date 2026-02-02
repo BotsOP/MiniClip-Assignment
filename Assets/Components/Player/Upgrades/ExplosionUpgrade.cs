@@ -1,3 +1,4 @@
+using Components.Grid;
 using UnityEngine;
 
 namespace Components.Player.Upgrades
@@ -18,10 +19,11 @@ namespace Components.Player.Upgrades
         {
             level++;
         }
-        public IHitResolver Create(IHitResolver inner)
+        public IHitResolver Create(IHitResolver inner, GridContext gridContext)
         {
             return new ExplosionUpgrade(
                 inner,
+                gridContext,
                 level,
                 startExplosionDamageModifier,
                 explosionReachIncreasePerLevel
@@ -33,7 +35,7 @@ namespace Components.Player.Upgrades
     {
         private readonly float startExplosionDamageModifier;
         private readonly float explosionReachIncreasePerLevel;
-        public ExplosionUpgrade(IHitResolver inner, int level, float startExplosionDamageModifier, float explosionReachIncreasePerLevel) : base(inner, level)
+        public ExplosionUpgrade(IHitResolver inner, GridContext gridContext, int level, float startExplosionDamageModifier, float explosionReachIncreasePerLevel) : base(inner, gridContext, level)
         {
             this.startExplosionDamageModifier = startExplosionDamageModifier;
             this.explosionReachIncreasePerLevel = explosionReachIncreasePerLevel;
@@ -41,7 +43,7 @@ namespace Components.Player.Upgrades
         public override void ResolveHit(ref HammerData hammerData)
         {
             float explosionDamage = hammerData.damage * startExplosionDamageModifier;
-            float explosionDistance = 1 + explosionReachIncreasePerLevel * Level;
+            float explosionDistance = 1 + explosionReachIncreasePerLevel * level;
             int explosionDistanceInt = Mathf.FloorToInt(explosionDistance);
             for (int x = -explosionDistanceInt; x < explosionDistanceInt; x++)
             for (int y = -explosionDistanceInt; y < explosionDistanceInt; y++)
@@ -56,8 +58,9 @@ namespace Components.Player.Upgrades
                     continue;
 
                 float distanceScaled = 1 - (distance / explosionDistance);
-                DamageInfo damageInfo = new DamageInfo(hammerData.worldPos, explosionDamage * distanceScaled, index);
-                ExtraHit(damageInfo);
+                Vector3 explosionPos = hammerData.worldPos + new Vector3(x * gridContext.cellSize, 0, y * gridContext.cellSize);
+                DamageInfo damageInfo = new DamageInfo(explosionPos, explosionDamage * distanceScaled);
+                ExtraHit(hammerData, damageInfo);
             }
             inner.ResolveHit(ref hammerData);
         }
