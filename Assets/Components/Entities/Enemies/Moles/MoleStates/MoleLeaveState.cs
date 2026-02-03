@@ -10,7 +10,6 @@ namespace Components.Entities.Enemies.Moles
 
         public override void OnEnter()
         {
-            Debug.Log($"entered leave");
             animator.CrossFade(LeaveAnimation, 0);
         }
     }

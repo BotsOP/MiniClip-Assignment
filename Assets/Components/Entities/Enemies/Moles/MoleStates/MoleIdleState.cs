@@ -9,7 +9,6 @@ namespace Components.Entities.Enemies.Moles
         }
         public override void OnEnter()
         {
-            Debug.Log($"entered idleState");
             animator.CrossFade(IdleAnimation, CROSS_FADE_DURATION);
         }
     }

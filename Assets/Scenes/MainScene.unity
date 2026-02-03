@@ -1378,9 +1378,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeData:
   - {fileID: 11400000, guid: dd2e1a81822bca54c8621515655b9533, type: 2}
-  - {fileID: 11400000, guid: 5f6fe20113899b841bff0376f9c00764, type: 2}
-  - {fileID: 11400000, guid: 76ff173281516914a95554dfcfe28bb7, type: 2}
-  - {fileID: 11400000, guid: cc8d904f646478045bb1e0dc2cef3973, type: 2}
 --- !u!1 &907054317
 GameObject:
   m_ObjectHideFlags: 0

@@ -13,7 +13,6 @@ namespace Components.Entities.Enemies.Moles
 
         public override void OnEnter()
         {
-            Debug.Log("Entered left");
             mole?.InvokeDiedCallback();
         }
     }
