@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Components.Entities.Enemies.Moles;
+using UnityEngine;
 
 namespace Components.StateMachine
 {
@@ -65,7 +67,7 @@ namespace Components.StateMachine
                     return transition;
                 }
             }
-            
+
             foreach (ITransition transition in current.Transitions)
             {
                 if (transition.Condition.Evaluate())

@@ -1,17 +1,19 @@
+using Components.ObjectPool;
 using UnityEngine;
 
 namespace Components.Entities.Enemies.Moles
 {
-    public class MoleViewer : MonoBehaviour, IMoleViewer
+    public abstract class MoleViewer : PoolObject
     {
         [SerializeField] private Animator animator;
-        public Animator GetAnimator()
+        public virtual Animator GetAnimator()
         {
             return animator;
         }
-        public GameObject GetGameObject()
+        public virtual PoolObject GetPoolObject()
         {
-            return gameObject;
+            return this;
         }
     }
+
 }

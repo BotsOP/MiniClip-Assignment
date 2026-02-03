@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Components.Grid;
 using Components.Managers;
 using UnityEngine;
 
@@ -10,11 +11,14 @@ namespace Components.Player.Upgrades
         public event Action<IHitResolver> UpdateHit;
         
         [SerializeField] private List<ScriptableObject> upgradeData;
-        private List<IHitUpgradeFactory> upgradeFactories = new List<IHitUpgradeFactory>();
-        private List<IHitUpgradeFactory> activeUpgradeFactories = new List<IHitUpgradeFactory>();
         
-        [Provide]
-        private IUpgradeManager ProvideUpgradeManager()
+        private readonly List<IHitUpgradeFactory> upgradeFactories = new List<IHitUpgradeFactory>();
+        private List<IHitUpgradeFactory> activeUpgradeFactories;
+
+        [Inject] private GridContext gridContext;
+        [Inject] private IDamageManager damageManager;
+        
+        [Provide] private IUpgradeManager ProvideUpgradeManager()
         {
             return this;
         }
@@ -26,8 +30,9 @@ namespace Components.Player.Upgrades
 
             for (int i = upgradeData.Count - 1; i >= 0; i--)
             {
-                if (EnsureScriptableObjectIsUpgrade(i))
+                if (!EnsureScriptableObjectIsUpgrade(upgradeData[i]))
                 {
+                    upgradeData.RemoveAt(i);
                     i--;
                 }
             }
@@ -35,64 +40,65 @@ namespace Components.Player.Upgrades
 
         private void Awake()
         {
+            activeUpgradeFactories = new List<IHitUpgradeFactory>(upgradeFactories.Count);
             for (int i = 0; i < upgradeData.Count; i++)
             {
-                if (EnsureScriptableObjectIsUpgrade(i))
+                if (!EnsureScriptableObjectIsUpgrade(upgradeData[i]))
                 {
+                    upgradeData.RemoveAt(i);
                     i--;
                     continue;
                 }
-                upgradeFactories[i] = (IHitUpgradeFactory)upgradeData[i];
+                IHitUpgradeFactory hitUpgradeFactory = (IHitUpgradeFactory)upgradeData[i];
+                hitUpgradeFactory.ResetLevel();
+                upgradeFactories.Add(hitUpgradeFactory);
             }
         }
-        private bool EnsureScriptableObjectIsUpgrade(int i)
+        private bool EnsureScriptableObjectIsUpgrade(ScriptableObject so)
         {
-            ScriptableObject so = upgradeData[i];
-                
             if (so == null)
                 return false;
                 
             if (so is not IHitUpgradeFactory)
             {
                 Debug.LogError($"{so.name} does not implement {nameof(IHitUpgradeFactory)} and was removed", this);
-                upgradeData.RemoveAt(i);
                 return false;
             }
+            
             return true;
         }
 
-        public IHitUpgradeFactory[] TryGet3RandomUpgrades()
+        public IHitUpgradeFactory[] TryGetRandomUpgrades(int amountRandomUpgrades)
         {
-            int amountUpgrades = Mathf.Min(activeUpgradeFactories.Count, 3);
-            IHitUpgradeFactory[] upgradeFactories = new IHitUpgradeFactory[amountUpgrades];
-            if (activeUpgradeFactories.Count <= 3)
+            int amountUpgrades = Mathf.Min(upgradeFactories.Count, amountRandomUpgrades);
+            IHitUpgradeFactory[] possibleUpgradeFactories = new IHitUpgradeFactory[amountUpgrades];
+            if (upgradeFactories.Count <= amountRandomUpgrades)
             {
-                for (int i = 0; i < activeUpgradeFactories.Count; i++)
+                for (int i = 0; i < upgradeFactories.Count; i++)
                 {
-                    upgradeFactories[i] = activeUpgradeFactories[i];
+                    possibleUpgradeFactories[i] = upgradeFactories[i];
                 }
-                return upgradeFactories;
+                return possibleUpgradeFactories;
             }
             
-            int[] distinctIndices = Helper.RandomDistinct(0, activeUpgradeFactories.Count, 3);
-            for (int i = 0; i < 3; i++)
+            int[] distinctIndices = Helper.RandomDistinct(0, upgradeFactories.Count, amountRandomUpgrades);
+            for (int i = 0; i < amountRandomUpgrades; i++)
             {
                 int randomIndex = distinctIndices[i];
-                upgradeFactories[i] = activeUpgradeFactories[randomIndex];
+                possibleUpgradeFactories[i] = upgradeFactories[randomIndex];
             }
-            return upgradeFactories;
+            return possibleUpgradeFactories;
         }
 
         public void AddUpgrade(IHitUpgradeFactory upgradeFactory)
         {
+            upgradeFactory.IncreaseLevel();
             foreach (IHitUpgradeFactory activeUpgradeFactory in activeUpgradeFactories)
             {
-                if (upgradeFactory == activeUpgradeFactory)
-                {
-                    activeUpgradeFactory.IncreaseLevel();
-                    RemakeUpgrades();
-                    return;
-                }
+                if (upgradeFactory != activeUpgradeFactory)
+                    continue;
+                RemakeUpgrades();
+                return;
             }
             
             activeUpgradeFactories.Add(upgradeFactory);
@@ -101,11 +107,11 @@ namespace Components.Player.Upgrades
 
         private void RemakeUpgrades()
         {
-            IHitResolver hit = new BasicHitResolver();
+            IHitResolver hit = new BasicHitResolver(damageManager);
             activeUpgradeFactories.Sort((a, b) => a.GetUpgradeOrder().CompareTo(b.GetUpgradeOrder()));
             foreach (IHitUpgradeFactory activeUpgradeFactory in activeUpgradeFactories)
             {
-                hit = activeUpgradeFactory.Create(hit);
+                hit = activeUpgradeFactory.Create(hit, gridContext, damageManager);
             }
             UpdateHit?.Invoke(hit);
         }

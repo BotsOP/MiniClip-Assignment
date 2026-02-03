@@ -2,24 +2,24 @@ using UnityEngine;
 
 namespace Components.Player
 {
+    public enum DamageSource
+    {
+        Player,
+        Mole,
+    }
     public struct DamageInfo
     {
         public Vector3 worldPos;
-        public float damage;
-        public Vector2Int gridOffset;
-        
-        public DamageInfo(Vector3 worldPos, float damage, Vector2Int gridOffset)
+        public Vector2Int offset;
+        public readonly float damage;
+        public DamageSource damageSource;
+
+        public DamageInfo(Vector3 worldPos, Vector2Int offset, float damage, DamageSource damageSource)
         {
             this.worldPos = worldPos;
+            this.offset = offset;
             this.damage = damage;
-            this.gridOffset = gridOffset;
-        }
-        
-        public DamageInfo(Vector3 worldPos, float damage)
-        {
-            this.worldPos = worldPos;
-            this.damage = damage;
-            gridOffset = new Vector2Int(0, 0);
+            this.damageSource = damageSource;
         }
     }
 }

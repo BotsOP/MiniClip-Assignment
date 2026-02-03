@@ -1,4 +1,5 @@
 using System;
+using Components.Player;
 
 namespace Components.Entities
 {
@@ -14,7 +15,7 @@ namespace Components.Entities
             this.diedCallback += diedCallback;
         }
 
-        public void AddMethod(Action<Entity> diedCallback)
+        public void AddDiedCallback(Action<Entity> diedCallback)
         {
             this.diedCallback += diedCallback;
         }
@@ -24,9 +25,9 @@ namespace Components.Entities
             diedCallback.Invoke(this);
         }
 
-        public virtual void DoDamage(float damage)
+        public virtual void DoDamage(DamageInfo damageInfo)
         {
-            health -= damage;
+            health -= damageInfo.damage;
         }
     }
 }

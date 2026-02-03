@@ -29,9 +29,18 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             ""actions"": [
                 {
                     ""name"": ""Hit"",
-                    ""type"": ""Button"",
+                    ""type"": ""Value"",
                     ""id"": ""351f2ccd-1f9f-44bf-9bec-d62ac5c5f408"",
-                    ""expectedControlType"": """",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""TouchInput"",
+                    ""type"": ""Value"",
+                    ""id"": ""a6d41a82-cb29-42d3-9eef-9f0d63ef8ab7"",
+                    ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
@@ -39,26 +48,70 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             ],
             ""bindings"": [
                 {
-                    ""name"": """",
-                    ""id"": ""3e04f87f-7d10-40f8-ac03-033216982a67"",
-                    ""path"": ""<Touchscreen>/primaryTouch"",
+                    ""name"": ""One Modifier"",
+                    ""id"": ""05838e2f-3103-4d31-b52c-9defb52331a4"",
+                    ""path"": ""OneModifier"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": "";Touch"",
+                    ""groups"": """",
                     ""action"": ""Hit"",
-                    ""isComposite"": false,
+                    ""isComposite"": true,
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": """",
-                    ""id"": ""3d7d4352-4926-44f7-b12f-381dd6c803bc"",
+                    ""name"": ""Modifier"",
+                    ""id"": ""f162f8e7-18ab-44ed-8f3f-b086140951fe"",
                     ""path"": ""<Mouse>/leftButton"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";Keyboard&Mouse"",
                     ""action"": ""Hit"",
                     ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Binding"",
+                    ""id"": ""6d46f924-fda6-4672-b870-6a1f5e5b29e9"",
+                    ""path"": ""<Mouse>/position"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""Hit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""One Modifier"",
+                    ""id"": ""fdd890ef-25e2-4700-9f97-9040f6944954"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""TouchInput"",
+                    ""isComposite"": true,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""092fc74c-91df-423e-9870-8f6c475a371d"",
+                    ""path"": ""<Touchscreen>/primaryTouch/press"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""TouchInput"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""d64c8eb3-4d81-4b06-a7ab-906bd0028042"",
+                    ""path"": ""<Touchscreen>/position"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""TouchInput"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
                 }
             ]
         },
@@ -645,6 +698,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         // Player
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_Hit = m_Player.FindAction("Hit", throwIfNotFound: true);
+        m_Player_TouchInput = m_Player.FindAction("TouchInput", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -725,11 +779,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_Player;
     private List<IPlayerActions> m_PlayerActionsCallbackInterfaces = new List<IPlayerActions>();
     private readonly InputAction m_Player_Hit;
+    private readonly InputAction m_Player_TouchInput;
     public struct PlayerActions
     {
         private @InputSystem_Actions m_Wrapper;
         public PlayerActions(@InputSystem_Actions wrapper) { m_Wrapper = wrapper; }
         public InputAction @Hit => m_Wrapper.m_Player_Hit;
+        public InputAction @TouchInput => m_Wrapper.m_Player_TouchInput;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -742,6 +798,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Hit.started += instance.OnHit;
             @Hit.performed += instance.OnHit;
             @Hit.canceled += instance.OnHit;
+            @TouchInput.started += instance.OnTouchInput;
+            @TouchInput.performed += instance.OnTouchInput;
+            @TouchInput.canceled += instance.OnTouchInput;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -749,6 +808,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Hit.started -= instance.OnHit;
             @Hit.performed -= instance.OnHit;
             @Hit.canceled -= instance.OnHit;
+            @TouchInput.started -= instance.OnTouchInput;
+            @TouchInput.performed -= instance.OnTouchInput;
+            @TouchInput.canceled -= instance.OnTouchInput;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -932,6 +994,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     public interface IPlayerActions
     {
         void OnHit(InputAction.CallbackContext context);
+        void OnTouchInput(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {

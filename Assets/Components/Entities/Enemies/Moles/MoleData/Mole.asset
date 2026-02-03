@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9944245d7a3a4ff2af8f641c58231f5e, type: 3}
+  m_Name: Mole
+  m_EditorClassIdentifier: 
+  difficulty: 1
+  spawnChance: 10
+  molePrefab: {fileID: 7984986725039179770, guid: ef1a4c75ab77cd2498ae7386dbe58ff3, type: 3}
+  leaveTime: 1
+  maxHealth: 10
+  score: 10
+  xp: 0.4
+  scaledSpawnChance: 1

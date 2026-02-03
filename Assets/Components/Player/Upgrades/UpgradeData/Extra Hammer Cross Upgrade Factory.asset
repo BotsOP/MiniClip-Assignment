@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: Extra Hammer Cross Upgrade Factory
+  m_EditorClassIdentifier: Assembly-CSharp:Components.Player.Upgrades:ExtraHammerCrossUpgradeFactory
+  nameUpgrade: Extra Hammer (Cross shape)
+  textureUpgrade: {fileID: 2800000, guid: 3bdcfef5802abd6439f947d313e853f3, type: 3}
+  nameExtraHammerDamageModifier: Extra Hammer Damage Modifier
+  nameAmountExtraHammerModifier: Amount Extra Hammers
+  upgradeOrder: 2
+  extraHammerDamageBase: 0.2
+  extraHammerDamagePerLevel: 0.1
