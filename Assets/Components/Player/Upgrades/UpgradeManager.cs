@@ -14,6 +14,9 @@ namespace Components.Player.Upgrades
         
         private readonly List<IHitUpgradeFactory> upgradeFactories = new List<IHitUpgradeFactory>();
         private List<IHitUpgradeFactory> activeUpgradeFactories;
+
+        [Inject] private GridContext gridContext;
+        [Inject] private IDamageManager damageManager;
         
         [Provide] private IUpgradeManager ProvideUpgradeManager()
         {
@@ -46,7 +49,9 @@ namespace Components.Player.Upgrades
                     i--;
                     continue;
                 }
-                upgradeFactories.Add((IHitUpgradeFactory)upgradeData[i]);
+                IHitUpgradeFactory hitUpgradeFactory = (IHitUpgradeFactory)upgradeData[i];
+                hitUpgradeFactory.ResetLevel();
+                upgradeFactories.Add(hitUpgradeFactory);
             }
         }
         private bool EnsureScriptableObjectIsUpgrade(ScriptableObject so)
@@ -87,11 +92,11 @@ namespace Components.Player.Upgrades
 
         public void AddUpgrade(IHitUpgradeFactory upgradeFactory)
         {
+            upgradeFactory.IncreaseLevel();
             foreach (IHitUpgradeFactory activeUpgradeFactory in activeUpgradeFactories)
             {
                 if (upgradeFactory != activeUpgradeFactory)
                     continue;
-                activeUpgradeFactory.IncreaseLevel();
                 RemakeUpgrades();
                 return;
             }
@@ -102,11 +107,11 @@ namespace Components.Player.Upgrades
 
         private void RemakeUpgrades()
         {
-            IHitResolver hit = new BasicHitResolver();
+            IHitResolver hit = new BasicHitResolver(damageManager);
             activeUpgradeFactories.Sort((a, b) => a.GetUpgradeOrder().CompareTo(b.GetUpgradeOrder()));
             foreach (IHitUpgradeFactory activeUpgradeFactory in activeUpgradeFactories)
             {
-                hit = activeUpgradeFactory.Create(hit);
+                hit = activeUpgradeFactory.Create(hit, gridContext, damageManager);
             }
             UpdateHit?.Invoke(hit);
         }

@@ -1,6 +1,9 @@
+using Components.Grid;
+using Components.Managers;
 using Components.ObjectPool;
 using Components.Player.Upgrades;
 using UnityEngine;
+using EventType = Components.Managers.EventType;
 
 namespace Components.Player
 {
@@ -10,7 +13,8 @@ namespace Components.Player
         
         [Inject] private IInputManager inputManager;
         [Inject] private IUpgradeManager upgradeManager;
-        [Inject] private ObjectPoolManager objectPool;
+        [Inject] private IObjectPoolManager objectPool;
+        [Inject] private IDamageManager damageManager;
 
         private Transform hammerTransform;
         private Transform hammerPivot;
@@ -18,6 +22,7 @@ namespace Components.Player
         private Camera mainCamera;
         private Vector2 cachedScaledStartScreenPos;
         private IHitResolver hit;
+        private bool pausedGame;
         
         private Quaternion BaseHammerRotation => cachedScaledStartScreenPos.x < 0.5 ? Quaternion.identity : Quaternion.Euler(0, 180, 0);
 
@@ -25,23 +30,31 @@ namespace Components.Player
         {
             inputManager.StartHit += StartHit;
             upgradeManager.UpdateHit += SetHit;
+
+            objectPool.CreatePool(hammerSettings.extraHammerPrefab, new DefaultPoolLifecycleStrategy());
         
             mainCamera = Camera.main;
             hammerTransform = Instantiate(hammerSettings.hammerPrefab);
             hammerPivot = hammerTransform.GetChild(0);
             
             hammerData = hammerSettings.GetHammerData();
-            hammerData.pivot = hammerPivot;
+            hammerData.baseHammerTransform = hammerTransform;
             hammerData.spawn = objectPool.Spawn;
             hammerData.release = objectPool.Release;
             
-            hit = new BasicHitResolver();
+            hit = new BasicHitResolver(damageManager);
+            EventSystem<bool>.Subscribe(EventType.PausedGame, PausedGame);
         }
         
         private void OnDisable()
         {
             inputManager.StartHit -= StartHit;
             upgradeManager.UpdateHit -= SetHit;
+        }
+
+        private void PausedGame(bool paused)
+        {
+            pausedGame = paused;
         }
 
         private void SetHit(IHitResolver newHit)
@@ -51,14 +64,12 @@ namespace Components.Player
 
         private void StartHit(Vector2 screenPos, Vector2 scaledScreenPos)
         {
-            Vector3 worldPos = GetWorldPos(screenPos);
-            cachedScaledStartScreenPos = scaledScreenPos;
-            hammerTransform.localRotation = BaseHammerRotation;
-            hammerTransform.position = worldPos;
-            hammerPivot.localRotation = Quaternion.Euler(0, 0, 90);
-
+            if (pausedGame)
+                return;
+            
             HammerData copy = hammerData;
-            copy.worldPos = worldPos;
+            copy.baseHammerRotation = scaledScreenPos.x < 0.5 ? Quaternion.identity : Quaternion.Euler(0, 180, 0);;
+            copy.worldPos = GetWorldPos(screenPos);
             hit.ResolveHit(ref copy);
         }
 

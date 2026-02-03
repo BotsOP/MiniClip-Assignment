@@ -14,7 +14,7 @@ namespace Components.Entities.Enemies.Moles
 
         public override void OnEnter()
         {
-            mole.ScoreModel.AddScore(mole.Score);
+            mole.ScoreModel.AddScore(mole.Score, mole.MoleViewer.transform.position);
             mole.LevelModel.AddXp(mole.Xp);
         }
     }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Components.Entities.Enemies.Moles
 {
-    public class MoleViewer : PoolObject
+    public abstract class MoleViewer : PoolObject
     {
         [SerializeField] private Animator animator;
         public virtual Animator GetAnimator()
@@ -15,4 +15,5 @@ namespace Components.Entities.Enemies.Moles
             return this;
         }
     }
+
 }

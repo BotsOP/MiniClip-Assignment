@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Components.UI
+namespace Components.UI.UpgradeSelection
 {
     public class UpgradeSelectionView : MonoBehaviour
     {

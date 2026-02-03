@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Components.UI
+namespace Components.UI.LiveGame
 {
     public interface ILevelView
     {

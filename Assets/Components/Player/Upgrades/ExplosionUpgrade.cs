@@ -27,10 +27,16 @@ namespace Components.Player.Upgrades
         {
             level++;
         }
-        public IHitResolver Create(IHitResolver inner)
+        public void ResetLevel()
+        {
+            level = 0;
+        }
+        public IHitResolver Create(IHitResolver inner, GridContext gridContext, IDamageManager damageManager)
         {
             return new ExplosionUpgrade(
                 inner,
+                damageManager,
+                gridContext,
                 level,
                 startExplosionDamageModifier,
                 explosionDamageModifierPerLevel,
@@ -48,6 +54,8 @@ namespace Components.Player.Upgrades
             UpgradeStatInfo[] upgradeInfos = new UpgradeStatInfo[2];
             ExplosionUpgrade upgrade = new ExplosionUpgrade(
                 null,
+                null,
+                default,
                 level,
                 startExplosionDamageModifier,
                 explosionDamageModifierPerLevel,
@@ -77,7 +85,7 @@ namespace Components.Player.Upgrades
         public float explosionDamageModifier { get; private set; }
         public float explosionDamageModifierPerLevel { get; private set; }
         public float explosionReachIncreasePerLevel { get; private set; }
-        public ExplosionUpgrade(IHitResolver inner, int level, float startExplosionDamageModifier, float explosionDamageModifierPerLevel, float explosionReachIncreasePerLevel) : base(inner, level)
+        public ExplosionUpgrade(IHitResolver inner, IDamageManager damageManager, GridContext gridContext, int level, float startExplosionDamageModifier, float explosionDamageModifierPerLevel, float explosionReachIncreasePerLevel) : base(inner, damageManager, gridContext, level)
         {
             explosionDamageModifier = startExplosionDamageModifier;
             this.explosionDamageModifierPerLevel = explosionDamageModifierPerLevel;

@@ -26,10 +26,17 @@ namespace Components.Player.Upgrades
             level++;
         }
         
-        public IHitResolver Create(IHitResolver inner)
+        public void ResetLevel()
+        {
+            level = 0;
+        }
+        
+        public IHitResolver Create(IHitResolver inner, GridContext gridContext, IDamageManager damageManager)
         {
             return new DamageUpgrade(
                 inner,
+                damageManager,
+                gridContext,
                 level,
                 damageIncreasePerLevel
             );
@@ -45,6 +52,8 @@ namespace Components.Player.Upgrades
             UpgradeStatInfo[] upgradeInfos = new UpgradeStatInfo[1];
             DamageUpgrade upgrade = new DamageUpgrade(
                 null,
+                null,
+                default,
                 level,
                 damageIncreasePerLevel
             );
@@ -66,7 +75,7 @@ namespace Components.Player.Upgrades
     {
         public float damageIncreasePerLevel { get; private set; }
         
-        public DamageUpgrade(IHitResolver inner, int level, float damageIncreasePerLevel) : base(inner, level)
+        public DamageUpgrade(IHitResolver inner, IDamageManager damageManager, GridContext gridContext, int level, float damageIncreasePerLevel) : base(inner, damageManager, gridContext, level)
         {
             this.damageIncreasePerLevel = damageIncreasePerLevel;
         }

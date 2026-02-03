@@ -5,6 +5,7 @@ namespace Components.UI
     public class TimerModel
     {
         public event Action<float> TimeChanged;
+        public event Action TimeFinished;
         public float Time { get; private set; }
 
         public TimerModel(float initialTime)
@@ -16,6 +17,11 @@ namespace Components.UI
         {
             Time += time;
             TimeChanged?.Invoke(Time);
+
+            if (Time <= 0)
+            {
+                TimeFinished?.Invoke();
+            }
         }
     }
 }

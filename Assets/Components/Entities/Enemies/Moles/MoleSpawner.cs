@@ -81,7 +81,7 @@ namespace Components.Entities.Enemies.Moles
                 else
                     indexedMolesChances[moleFactory.GetDifficulty()].Add(moleFactory);
 
-                objectPoolManager.CreatePool(moleFactory.GetMoleViewer());
+                objectPoolManager.CreatePool(moleFactory.GetMoleViewer(), new DefaultPoolLifecycleStrategy());
             }
             lastUsedDifficulty = minDifficulty;
 
@@ -127,19 +127,22 @@ namespace Components.Entities.Enemies.Moles
 
         public void Update()
         {
-            foreach (Mole mole in moles)
+            for (int i = 0; i < moles.Count; i++)
             {
+                Mole mole = moles[i];
                 mole.Update();
             }
         }
 
         private Mole GetRandomMole(int difficulty, Vector3 spawnPosition, Action<Entity> enemyDiedCallback)
         {
+            if (!indexedMolesChances.TryGetValue(difficulty, out List<IMoleFactory> moleFactoriesOut))
+                return null;
+            
             float random = Random.Range(0.0f, 1.0f);
             Mole mole = null;
-            for (int i = 0; i < indexedMolesChances[difficulty].Count; i++)
+            foreach (IMoleFactory moleData in moleFactoriesOut)
             {
-                IMoleFactory moleData = indexedMolesChances[difficulty][i];
                 if ((random > moleData.GetSpawnChance()))
                     continue;
                 

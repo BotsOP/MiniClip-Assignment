@@ -582,7 +582,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7953435816374611764}
   - component: {fileID: 3407480595142992930}
-  - component: {fileID: 6393168256924353924}
+  - component: {fileID: 217017436700107423}
   - component: {fileID: 6166024967652500099}
   m_Layer: 3
   m_Name: BabyMole
@@ -633,7 +633,7 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &6393168256924353924
+--- !u!114 &217017436700107423
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -642,7 +642,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6247472273937886753}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7f97930f41d64f74a1fc821b3036745c, type: 3}
+  m_Script: {fileID: 11500000, guid: 86d53397e9154f258549b13a437d25e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   animator: {fileID: 3407480595142992930}

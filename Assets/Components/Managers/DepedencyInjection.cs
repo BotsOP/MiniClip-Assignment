@@ -14,5 +14,3 @@ public sealed class ProvideAttribute : Attribute
 }
 
 public interface IDependencyProvider {}
-
-//Make sure Injector runs before everything else

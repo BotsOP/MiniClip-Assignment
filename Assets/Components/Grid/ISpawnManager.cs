@@ -1,6 +1,6 @@
 namespace Components.Grid
 {
-    public interface IGridManager
+    public interface ISpawnManager
     {
         GridContext GetGridContext();
         void SpawnRandomEnemy(int difficulty);

@@ -3,6 +3,7 @@ using System.Threading;
 using Components.Grid;
 using Components.UI;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using EventType = Components.Managers.EventType;
 
 namespace Components.Managers
@@ -11,6 +12,7 @@ namespace Components.Managers
     {
         void PauseGame();
         void ResumeGame();
+        void RestartScene();
     }
 
     public class GameManager : MonoBehaviour, IDependencyProvider, IGameFlowController
@@ -21,7 +23,7 @@ namespace Components.Managers
         private float spawnTimer;
         private float gameTimer;
         private bool paused;
-        [Inject] private IGridManager gridManager;
+        [Inject] private ISpawnManager spawnManager;
         [Inject] private TimerModel timerModel;
 
         [Provide] private IGameFlowController ProvideGameFlowController()
@@ -46,7 +48,7 @@ namespace Components.Managers
                 return;
             
             spawnTimer -= spawnEnemyDelay;
-            gridManager.SpawnRandomEnemy(difficulty);
+            spawnManager.SpawnRandomEnemy(difficulty);
         }
 
         private void UpdateTimer()
@@ -59,14 +61,21 @@ namespace Components.Managers
 
         public void PauseGame()
         {
+            EventSystem<bool>.RaiseEvent(EventType.PausedGame, true);
             Time.timeScale = 0;
             paused = true;
         }
 
         public void ResumeGame()
         {
+            EventSystem<bool>.RaiseEvent(EventType.PausedGame, false);
             Time.timeScale = 1;
             paused = false;
+        }
+        
+        public void RestartScene()
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
     }
 }

@@ -17,7 +17,8 @@ namespace Components.Player
         public ReleaseHammer release;
         public SpawnHammer spawn;
         public PoolObject extraHammerInstance;
-        public Transform pivot;
+        public Transform baseHammerTransform;
+        public Quaternion baseHammerRotation;
         public Vector3 worldPos;
         public float damage;
     }

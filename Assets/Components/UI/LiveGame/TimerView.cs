@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-namespace Components.UI
+namespace Components.UI.LiveGame
 {
     public interface ITimerView
     {

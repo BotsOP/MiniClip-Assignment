@@ -1,7 +1,7 @@
 using Components.Managers;
 using Components.Player.Upgrades;
 
-namespace Components.UI
+namespace Components.UI.UpgradeSelection
 {
     public class UpgradeSelectorPresenter
     {

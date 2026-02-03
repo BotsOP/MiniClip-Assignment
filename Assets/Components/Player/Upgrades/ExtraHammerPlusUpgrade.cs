@@ -30,11 +30,17 @@ namespace Components.Player.Upgrades
         {
             level++;
         }
+        public void ResetLevel()
+        {
+            level = 0;
+        }
         
-        public IHitResolver Create(IHitResolver inner)
+        public IHitResolver Create(IHitResolver inner, GridContext gridContext, IDamageManager damageManager)
         {
             return new ExtraHammerPlusUpgrade(
                 inner,
+                damageManager,
+                gridContext,
                 level,
                 extraHammerDamagePerLevel,
                 extraHammerDamageBase
@@ -51,6 +57,8 @@ namespace Components.Player.Upgrades
             UpgradeStatInfo[] upgradeInfos = new UpgradeStatInfo[2];
             ExtraHammerPlusUpgrade upgrade = new ExtraHammerPlusUpgrade(
                 null,
+                null,
+                default,
                 level,
                 extraHammerDamagePerLevel,
                 extraHammerDamageBase
@@ -78,7 +86,7 @@ namespace Components.Player.Upgrades
     {
         private readonly float extraHammerDamagePerLevel;
         public float ExtraHammerDamage { get; private set; }
-        public ExtraHammerPlusUpgrade(IHitResolver inner, int level, float extraHammerDamagePerLevel, float extraHammerDamageBase) : base(inner, level)
+        public ExtraHammerPlusUpgrade(IHitResolver inner, IDamageManager damageManager, GridContext gridContext, int level, float extraHammerDamagePerLevel, float extraHammerDamageBase) : base(inner, damageManager, gridContext, level)
         {
             this.extraHammerDamagePerLevel = extraHammerDamagePerLevel;
             ExtraHammerDamage = extraHammerDamageBase;
@@ -93,7 +101,7 @@ namespace Components.Player.Upgrades
             float damage = hammerData.damage * ExtraHammerDamage;
             for (int i = 0; i < Level; i++)
             {
-                int extension = i / 4;
+                int extension = (i / 4) + 1;
                 int direction = i % 4;
                 Vector2Int offset = Vector2Int.zero;
                 switch (direction)

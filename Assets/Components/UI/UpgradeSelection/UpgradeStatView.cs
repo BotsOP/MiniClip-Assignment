@@ -2,7 +2,7 @@ using Components.Player.Upgrades;
 using TMPro;
 using UnityEngine;
 
-namespace Components.UI
+namespace Components.UI.UpgradeSelection
 {
     public class UpgradeStatView : MonoBehaviour
     {

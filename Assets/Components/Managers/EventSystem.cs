@@ -4,7 +4,7 @@ namespace Components.Managers
 {
     public enum EventType
     {
-        DoDamage,
+        PausedGame,
     }
 
     public static class EventSystem

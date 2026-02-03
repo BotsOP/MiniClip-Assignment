@@ -1,9 +1,8 @@
 using System;
 using Components.Player.Upgrades;
 using UnityEngine;
-using UnityEngine.UI;
 
-namespace Components.UI
+namespace Components.UI.UpgradeSelection
 {
     public interface IUpgradeView
     {

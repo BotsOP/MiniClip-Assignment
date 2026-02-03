@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   difficulty: 2
   spawnChance: 10
-  molePrefab: {fileID: 790222234940336988, guid: 91e31e88342fc72409112b6f3fbb3ce5, type: 3}
+  molePrefab: {fileID: 4082052823763719753, guid: 91e31e88342fc72409112b6f3fbb3ce5, type: 3}
   leaveTime: 1
   maxHealth: 10
   score: 10
-  xp: 1
+  xp: 0.5
   scaledSpawnChance: 1

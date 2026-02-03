@@ -10,7 +10,12 @@ using Random = UnityEngine.Random;
 
 namespace Components.Grid
 {
-    public class GridManager : MonoBehaviour, IGridManager, IDependencyProvider
+    public interface IDamageManager
+    {
+        void DoDamage(DamageInfo damageInfo);
+    }
+
+    public class SpawnManager : MonoBehaviour, ISpawnManager, IDependencyProvider, IDamageManager
     {
         [SerializeField, Min(1)] private float cellSize = 1;
         [SerializeField, Min(1)] private int gridWidth = 1;
@@ -20,10 +25,17 @@ namespace Components.Grid
 
         private Entity[,] grid;
 
-        [Provide]
-        public IGridManager ProvideGridManager()
+        [Provide] private IDamageManager ProvideDamageManager()
         {
             return this;
+        }
+        [Provide] private ISpawnManager ProvideGridManager()
+        {
+            return this;
+        }
+        [Provide] private GridContext ProvideGridContext()
+        {
+            return new GridContext(cellSize, gridWidth, gridHeight);
         }
         
         private void OnDrawGizmosSelected()
@@ -39,20 +51,16 @@ namespace Components.Grid
         private void OnEnable()
         {
             grid = new Entity[gridWidth, gridHeight];
-            EventSystem<DamageInfo>.Subscribe(EventType.DoDamage, DoDamage);
-        }
-        private void OnDisable()
-        {
-            EventSystem<DamageInfo>.UnSubscribe(EventType.DoDamage, DoDamage);
         }
 
-        private void DoDamage(DamageInfo damageInfo)
+        public void DoDamage(DamageInfo damageInfo)
         {
             Vector2Int index = WorldPosToIndex(damageInfo.worldPos);
+            index += damageInfo.offset;
             
             if (index.x < 0 || index.y < 0 || index.x >= gridWidth || index.y >= gridHeight)
             {
-                Debug.LogError($"Index: {index} is out of bounds");
+                // Debug.LogError($"Index: {index} is out of bounds");
                 return;
             }
             
@@ -121,7 +129,6 @@ namespace Components.Grid
             int x = Mathf.FloorToInt(localPos.x / cellSize);
             int z = Mathf.FloorToInt(localPos.z / cellSize);
     
-            Debug.Log($"{worldPos} {x} {z}");
             return new Vector2Int(x, z);
         }
 
